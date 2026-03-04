@@ -16,17 +16,24 @@ function distLabel(m: number) {
   return m >= 1000 ? `${(m / 1000).toFixed(1)} km away` : `${Math.round(m)} m away`;
 }
 
-import { supabase } from '@/lib/supabase';
-
 export default function Dashboard() {
   const { nudges, position } = useProximityNudge();
 
   async function handleDelete(id: string) {
-    // Optimistic UI update could be added here, but simplest is to just delete and let the hook fetch again,
-    // actually since the hook doesn't auto-poll on delete, a reload or local state update is needed.
-    // For now we will just delete from DB and reload the page.
-    await supabase.from('nudges').delete().eq('id', id);
-    window.location.reload();
+    try {
+      const res = await fetch('/api/delete-nudge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!res.ok) throw new Error('Deletion failed');
+
+      window.location.reload();
+    } catch (e) {
+      console.error('Failed to delete nudge:', e);
+      alert('Could not delete nudge securely.');
+    }
   }
 
   // Enrich nudges with live min distance across all their locations
