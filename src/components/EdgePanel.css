@@ -1,0 +1,210 @@
+/* ============================================================
+   Edge Panel & Now Card — Samsung One UI-style glassmorphism
+   ============================================================ */
+
+/* ── Pull Tab ─────────────────────────────────────────────── */
+.edge-panel-tab {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 80px;
+  background: linear-gradient(180deg, #317EFB 0%, #9f5cff 100%);
+  border-radius: 8px 0 0 8px;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+  transition: width 0.2s ease, opacity 0.2s ease;
+  box-shadow: -2px 0 12px rgba(49, 126, 251, 0.5);
+}
+.edge-panel-tab:hover {
+  width: 10px;
+  opacity: 0.9;
+}
+
+/* ── Backdrop ─────────────────────────────────────────────── */
+.edge-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 1001;
+  animation: fadeIn 0.2s ease;
+}
+
+/* ── Panel Shell ──────────────────────────────────────────── */
+.edge-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100dvh;
+  width: min(340px, 90vw);
+  z-index: 1002;
+
+  /* Glassmorphism */
+  background: rgba(15, 15, 30, 0.65);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 60px 0 0 60px;
+
+  /* Hidden by default */
+  transform: translateX(105%);
+  transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 20px 24px;
+  overflow: hidden;
+  box-shadow: -8px 0 48px rgba(49, 126, 251, 0.2);
+}
+.edge-panel--open {
+  transform: translateX(0);
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.edge-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.edge-panel-header__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #317EFB, #9f5cff);
+  box-shadow: 0 0 8px #317EFB;
+  flex-shrink: 0;
+}
+.edge-panel-header__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  flex: 1;
+}
+.edge-panel-header__close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #ccc;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+.edge-panel-header__close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* ── Pills ────────────────────────────────────────────────── */
+.edge-panel-location-pill,
+.edge-panel-error-pill {
+  font-size: 0.7rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+.edge-panel-location-pill {
+  background: rgba(49, 126, 251, 0.18);
+  color: #93c5fd;
+  border: 1px solid rgba(49, 126, 251, 0.3);
+}
+.edge-panel-error-pill {
+  background: rgba(251, 80, 80, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(251, 80, 80, 0.3);
+}
+
+/* ── Scroll Area ──────────────────────────────────────────── */
+.edge-panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+.edge-panel-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.edge-panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+}
+
+/* ── Now Card ─────────────────────────────────────────────── */
+.now-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+.now-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  background: rgba(49, 126, 251, 0.12);
+  box-shadow: 0 8px 30px rgba(49, 126, 251, 0.15);
+}
+.now-card__icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+.now-card__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0;
+}
+.now-card__body {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.5;
+}
+.now-card__time {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* ── Empty State ──────────────────────────────────────────── */
+.edge-panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  color: #475569;
+  font-size: 0.875rem;
+}
+.edge-panel-empty span {
+  font-size: 2.5rem;
+}
+
+/* ── Footer ───────────────────────────────────────────────── */
+.edge-panel-footer {
+  font-size: 0.65rem;
+  text-align: center;
+  color: #334155;
+  letter-spacing: 0.05em;
+}
+
+/* ── Animations ───────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
