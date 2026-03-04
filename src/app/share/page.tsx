@@ -81,17 +81,35 @@ function ShareTargetInner() {
                 setNudge(nudgeData);
 
                 // ── Step 2: LocationIQ geocodes the location_query ───────────────
-                let geoData: GeoResult | null = null;
+                let geoData: GeoResult[] | null = null;
                 if (nudgeData.location_query) {
                     setStep('geocoding');
+
+                    let userLat: number | undefined;
+                    let userLon: number | undefined;
+
+                    try {
+                        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+                        });
+                        userLat = pos.coords.latitude;
+                        userLon = pos.coords.longitude;
+                    } catch (e) {
+                        console.warn("Could not get GPS for geocoding bias", e);
+                    }
+
                     const geoRes = await fetch('/api/geocode', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ location_query: nudgeData.location_query }),
+                        body: JSON.stringify({
+                            location_query: nudgeData.location_query,
+                            lat: userLat,
+                            lon: userLon
+                        }),
                     });
                     if (!geoRes.ok) throw new Error(`Geocoding failed: ${geoRes.status}`);
                     geoData = await geoRes.json();
-                    setGeo(geoData);
+                    setGeo(geoData && geoData.length > 0 ? geoData[0] : null);
                 }
 
                 // ── Step 3: Save to Supabase (or IndexedDB as fallback) ──────────
@@ -100,8 +118,9 @@ function ShareTargetInner() {
                 const nudgePayload = {
                     title: nudgeData.title,
                     body: nudgeData.body,
-                    latitude: geoData?.latitude ?? 0,
-                    longitude: geoData?.longitude ?? 0,
+                    latitude: geoData?.[0]?.latitude ?? 0,
+                    longitude: geoData?.[0]?.longitude ?? 0,
+                    locations: geoData ?? [],
                     radius_m: 500,
                 };
 

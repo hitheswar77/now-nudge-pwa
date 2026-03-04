@@ -26,7 +26,7 @@ From the shared content below, extract structured information and return ONLY va
 {
   "title": "short human-readable title for the nudge (string, max 60 chars)",
   "body": "one-sentence reminder message shown in the notification (string, max 120 chars)",
-  "location_query": "the most specific place name or address to geocode, e.g. 'Orion Mall Bangalore' — or null if no location is mentioned"
+  "location_query": "if a generic product is mentioned ('milk', 'eggs'), output the best generic POI category (e.g., 'supermarket', 'pharmacy', 'hardware store'). If a specific place is mentioned ('Orion Mall'), output that name. If no physical location or category can be inferred, output null."
 }
 
 Shared content: "${sharedText.replace(/"/g, '\\"')}"

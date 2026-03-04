@@ -5,7 +5,7 @@ interface LocationIQResult {
 }
 
 export async function POST(req: Request) {
-    const { location_query } = await req.json();
+    const { location_query, lat, lon } = await req.json();
 
     if (!location_query) {
         return Response.json(
@@ -26,7 +26,12 @@ export async function POST(req: Request) {
     url.searchParams.set("key", apiKey);
     url.searchParams.set("q", location_query);
     url.searchParams.set("format", "json");
-    url.searchParams.set("limit", "1");
+    url.searchParams.set("limit", "10");
+
+    if (lat && lon) {
+        url.searchParams.set("lat", lat.toString());
+        url.searchParams.set("lon", lon.toString());
+    }
 
     const res = await fetch(url.toString());
 
@@ -47,11 +52,11 @@ export async function POST(req: Request) {
         );
     }
 
-    const { lat, lon, display_name } = data[0];
+    const locations = data.map(item => ({
+        latitude: parseFloat(item.lat),
+        longitude: parseFloat(item.lon),
+        display_name: item.display_name,
+    }));
 
-    return Response.json({
-        latitude: parseFloat(lat),
-        longitude: parseFloat(lon),
-        display_name,
-    });
+    return Response.json(locations);
 }

@@ -16,16 +16,35 @@ function distLabel(m: number) {
   return m >= 1000 ? `${(m / 1000).toFixed(1)} km away` : `${Math.round(m)} m away`;
 }
 
+import { supabase } from '@/lib/supabase';
+
 export default function Dashboard() {
   const { nudges, position } = useProximityNudge();
 
-  // Enrich nudges with live distance
-  const enriched = nudges.map((n) => ({
-    ...n,
-    dist: position
-      ? haversine(position.latitude, position.longitude, n.latitude, n.longitude)
-      : null,
-  }));
+  async function handleDelete(id: string) {
+    // Optimistic UI update could be added here, but simplest is to just delete and let the hook fetch again,
+    // actually since the hook doesn't auto-poll on delete, a reload or local state update is needed.
+    // For now we will just delete from DB and reload the page.
+    await supabase.from('nudges').delete().eq('id', id);
+    window.location.reload();
+  }
+
+  // Enrich nudges with live min distance across all their locations
+  const enriched = nudges.map((n) => {
+    let minDist: number | null = null;
+    if (position) {
+      const distances = [
+        haversine(position.latitude, position.longitude, n.latitude, n.longitude)
+      ];
+      if (n.locations) {
+        for (const loc of n.locations) {
+          distances.push(haversine(position.latitude, position.longitude, loc.latitude, loc.longitude));
+        }
+      }
+      minDist = Math.min(...distances);
+    }
+    return { ...n, dist: minDist };
+  });
 
   // Sort: nearby first
   const sorted = [...enriched].sort((a, b) =>
@@ -60,9 +79,12 @@ export default function Dashboard() {
               <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md">
                 📍 {heroNudge.dist !== null ? distLabel(heroNudge.dist) : 'Locating…'}
               </span>
+              <button onClick={() => handleDelete(heroNudge.id)} className="text-white/70 hover:text-white transition" aria-label="Delete Nudge">
+                ✖
+              </button>
             </div>
             <h2 className="text-2xl font-semibold mt-4">{heroNudge.title}</h2>
-            <p className="opacity-80">{heroNudge.body}</p>
+            <p className="opacity-80">{heroNudge.text || heroNudge.body}</p>
             <a
               href={`https://maps.google.com/?q=${heroNudge.latitude},${heroNudge.longitude}`}
               target="_blank"
@@ -111,6 +133,9 @@ export default function Dashboard() {
               {n.dist !== null && n.dist < 500 && (
                 <span className="ml-2 text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-1 rounded-full">Nearby</span>
               )}
+              <button onClick={() => handleDelete(n.id)} className="ml-3 text-gray-400 hover:text-red-500 transition px-2 py-1" aria-label="Delete Nudge">
+                ✕
+              </button>
             </div>
           ))}
         </div>

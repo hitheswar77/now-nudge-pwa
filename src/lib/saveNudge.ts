@@ -5,6 +5,7 @@ export interface NudgeInsert {
     body: string;
     latitude: number;
     longitude: number;
+    locations?: { latitude: number; longitude: number; display_name?: string }[];
     radius_m?: number;
 }
 
@@ -44,7 +45,15 @@ export async function saveNudgeLocally(nudge: NudgeInsert): Promise<void> {
         request.onsuccess = (e) => {
             const db = (e.target as IDBOpenDBRequest).result;
             const tx = db.transaction('nudges', 'readwrite');
-            tx.objectStore('nudges').add({ ...nudge, created_at: new Date().toISOString() });
+
+            const payload = {
+                ...nudge,
+                body: JSON.stringify({ text: nudge.body, locations: nudge.locations ?? [] }),
+                created_at: new Date().toISOString()
+            };
+            delete payload.locations; // don't store raw array
+
+            tx.objectStore('nudges').add(payload);
             tx.oncomplete = () => resolve();
             tx.onerror = () => reject(tx.error);
         };

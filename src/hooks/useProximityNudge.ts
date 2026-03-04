@@ -21,10 +21,12 @@ function haversineDistance(
 interface Nudge {
     id: string;
     title: string;
-    body: string;
+    body: string; // The raw JSON string
+    text?: string; // Parsed display text
+    locations?: { latitude: number; longitude: number; display_name?: string }[];
     latitude: number;
     longitude: number;
-    radius_m?: number; // optional per-nudge radius, defaults to 500
+    radius_m?: number;
 }
 
 interface UseProximityNudgeOptions {
@@ -55,7 +57,21 @@ export function useProximityNudge(options: UseProximityNudgeOptions = {}) {
                 setError(error.message);
                 return;
             }
-            setNudges(data ?? []);
+
+            const parsedData = (data ?? []).map((n) => {
+                let text = n.body;
+                let locations = [];
+                try {
+                    const parsed = JSON.parse(n.body);
+                    text = parsed.text || text;
+                    locations = parsed.locations || [];
+                } catch {
+                    // It's a legacy nudge (unformatted string)
+                }
+                return { ...n, text, locations };
+            });
+
+            setNudges(parsedData);
         }
 
         fetchNudges();
@@ -89,24 +105,33 @@ export function useProximityNudge(options: UseProximityNudgeOptions = {}) {
 
         nudges.forEach((nudge) => {
             const radius = nudge.radius_m ?? defaultRadius;
-            const dist = haversineDistance(
-                position.latitude, position.longitude,
-                nudge.latitude, nudge.longitude
-            );
 
-            if (dist < radius && !notifiedIds.current.has(nudge.id)) {
+            // Check distance against the primary location AND all secondary locations
+            const distances = [
+                haversineDistance(position.latitude, position.longitude, nudge.latitude, nudge.longitude)
+            ];
+
+            if (nudge.locations) {
+                for (const loc of nudge.locations) {
+                    distances.push(haversineDistance(position.latitude, position.longitude, loc.latitude, loc.longitude));
+                }
+            }
+
+            const minDist = Math.min(...distances);
+
+            if (minDist < radius && !notifiedIds.current.has(nudge.id)) {
                 notifiedIds.current.add(nudge.id);
 
                 if (Notification.permission === 'granted') {
                     new Notification(nudge.title, {
-                        body: nudge.body,
+                        body: nudge.text || nudge.body,
                         icon: '/icons/icon-192x192.png',
                     });
                 } else if (Notification.permission !== 'denied') {
                     Notification.requestPermission().then((perm) => {
                         if (perm === 'granted') {
                             new Notification(nudge.title, {
-                                body: nudge.body,
+                                body: nudge.text || nudge.body,
                                 icon: '/icons/icon-192x192.png',
                             });
                         }
@@ -115,7 +140,7 @@ export function useProximityNudge(options: UseProximityNudgeOptions = {}) {
             }
 
             // Reset badge when the user moves away (re-arm when re-entering)
-            if (dist >= radius) {
+            if (minDist >= radius) {
                 notifiedIds.current.delete(nudge.id);
             }
         });

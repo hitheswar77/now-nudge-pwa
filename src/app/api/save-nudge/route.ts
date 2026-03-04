@@ -9,11 +9,18 @@ const supabase = createClient(
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { title, body: nudgeBody, latitude, longitude, radius_m = 500 } = body;
+        const { title, body: rawBody, latitude, longitude, locations = [], radius_m = 500 } = body;
 
-        if (!title || !nudgeBody) {
+        if (!title || !rawBody) {
             return Response.json({ error: 'title and body are required' }, { status: 400 });
         }
+
+        // --- Hack to bypass Supabase schema migration ---
+        // We pack the body + locations array into a single JSON string in the `body` text column
+        const nudgeBody = JSON.stringify({
+            text: rawBody,
+            locations: locations
+        });
 
         const { data, error } = await supabase
             .from('nudges')
