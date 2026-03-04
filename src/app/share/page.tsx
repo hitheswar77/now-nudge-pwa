@@ -47,7 +47,9 @@ function ProgressBar({ step }: { step: Step }) {
     );
 }
 
-export default function ShareTarget() {
+import { Suspense } from 'react';
+
+function ShareTargetInner() {
     const searchParams = useSearchParams();
     const [step, setStep] = useState<Step>('extracting');
     const [nudge, setNudge] = useState<NudgeData | null>(null);
@@ -179,6 +181,18 @@ export default function ShareTarget() {
             <h1 className="text-2xl font-bold text-white mb-6">Processing your Nudge</h1>
             <ProgressBar step={step} />
         </Shell>
+    );
+}
+
+export default function ShareTarget() {
+    return (
+        <Suspense fallback={
+            <Shell>
+                <h1 className="text-2xl font-bold text-white mb-6">Loading...</h1>
+            </Shell>
+        }>
+            <ShareTargetInner />
+        </Suspense>
     );
 }
 
