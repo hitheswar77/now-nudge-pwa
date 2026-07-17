@@ -29,6 +29,17 @@ export async function POST(req: Request) {
     url.searchParams.set("limit", "10");
 
     if (lat && lon) {
+        // Create a ~50km bounding box around the user (1 degree of lat/lon is roughly 111km)
+        const offset = 0.5; // ~55km
+        const left = parseFloat(lon) - offset;
+        const bottom = parseFloat(lat) - offset;
+        const right = parseFloat(lon) + offset;
+        const top = parseFloat(lat) + offset;
+
+        url.searchParams.set("viewbox", `${left},${bottom},${right},${top}`);
+        url.searchParams.set("bounded", "1"); // Restrict results strictly to this box if possible
+
+        // Also pass lat/lon for sorting/weighting within that box
         url.searchParams.set("lat", lat.toString());
         url.searchParams.set("lon", lon.toString());
     }

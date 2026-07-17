@@ -13,6 +13,22 @@ export const metadata: Metadata = {
   title: "Now Nudge",
   description: "Location-aware PWA that sends nudges based on your proximity",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/icon-192x192.png",
+    apple: "/icons/icon-192x192.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Now Nudge",
+  },
+};
+
+export const viewport = {
+  themeColor: "#317EFB",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({

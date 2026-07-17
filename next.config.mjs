@@ -4,9 +4,8 @@ const withPWA = withPWAInit({
   dest: "public",
   register: true,
   skipWaiting: true,
-  // Disable PWA in dev so Turbopack can start cleanly.
-  // Service workers are only meaningful in production anyway.
-  disable: process.env.NODE_ENV === "development",
+  // Enable PWA in dev and prod so service workers and install prompt work during local demos.
+  disable: false,
 });
 
 /** @type {import('next').NextConfig} */
